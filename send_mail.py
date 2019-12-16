@@ -3,45 +3,38 @@ from sendgrid import SendGridAPIClient
 import os
 import requests
 import json
-
-# class RecipeItem
-#     def __init__(self, type, name, recipe):
-#         self.type = type
-
+from markdown2 import Markdown
     
 
 url = 'http://taco-randomizer.herokuapp.com/random/'
 
-res = requests.get(url).json()
+response = requests.get(url).json()
 
-def make_email(mixin, condiment, base_layer, seasoning, shell):
-    mixin_name = mixin.get('name')
-    mixin_recipe = mixin.get('recipe')
-    template = f"""
-    <Strong>Here's a taco recipe</Strong>
-    <p>{mixin_name}: {mixin_recipe}</p>
+def make_email(response):
+    taco_components = ['base_layer', 'mixin',
+                       'condiment', 'seasoning', 'shell']
+    template = "<strong> Here's a taco recipe! </strong>\n"
+    markdowner = Markdown()
 
-    """
+    for component in taco_components:
+       html_content = markdowner.convert(response.get(component).get('recipe'))
+       template += f"<p>{html_content}</p>\n"
     return template
 
+html_content = make_email(response)
 
-email = make_email(res.get('mixin'), res.get('condiment'), res.get(
-    'base_layer'), res.get('seasoning'), res.get('shell'))
+message = Mail(
+    from_email=('tacobot@delicious.party', 'Taco Bot'),
+    to_emails=['tilde@thuryism.net'], # replace this with your email address
+    html_content=html_content,
+    subject='Delicious tacos',
+)
 
-print(email)
-
-# message = Mail(
-#     from_email=('tacobot@delicious.party', 'Taco Bot'),
-#     to_emails=['tilde@thuryism.net'], # replace this with your email address
-#     html_content=make_email(res.get('mixin'), res.get('condiment'), res.get('base_layer'), res.get('seasoning'), res.get('shell')),
-#     subject='Delicious tacos',
-# )
-
-# try:
-#     sendgrid_client = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-#     response = sendgrid_client.send(message)
-#     print(response.status_code)
-#     print(response.body)
-#     print(response.headers)
-# except Exception as e:
-#     print(e.message)
+try:
+    sendgrid_client = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+    response = sendgrid_client.send(message)
+    print(response.status_code)
+    print(response.body)
+    print(response.headers)
+except Exception as e:
+    print(e)
