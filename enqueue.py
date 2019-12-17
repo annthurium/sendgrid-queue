@@ -9,7 +9,7 @@ sendgrid_client = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
 q = Queue(connection=Redis())
 
-emails = ['example1@mail.com', 'example2@mail.com', 'tilde@thuryism.net'] #replace these with your email address
+emails = ['example1@mail.com', 'example2@mail.com', 'example3@mail.com'] #replace these with your email address
 
 for email in emails:
     q.enqueue(send_message, sendgrid_client, email)
